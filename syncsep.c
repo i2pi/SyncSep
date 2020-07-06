@@ -22,10 +22,10 @@
  * 
  * Pinout:
  * 
- *                 Vdd  1.    8 GND
- *    RA5 / V Sync Out  2     7 COG1OUT1 / Line gate
- *  C1IN1- / Signal IN  3     6 
- *                      4     5 C1OUT / H sync Out
+ *                 Vdd  1.    8  GND
+ *                      2     7  COG1OUT1 / Line gate
+ *  C1IN1- / Signal IN  3     6  RA1 / V Sync Out
+ *                      4     5  C1OUT / H sync Out
  */
 
 
@@ -38,11 +38,12 @@
 #pragma config WRT = OFF        // Flash Program Memory Self Write Enable bit (Flash self-write protection off)
 #pragma config CLKOUTEN = OFF   // Clock Out Enable bit (CLKOUT function disabled.  CLKOUT pin acts as I/O)
 
+
+
 /*
  * We use the DAC to generate a constant voltage that we compare against to
  * identify horizontal sync pulses. Using a 5V Vdd, each step in the DAC is
  * 156mV, so we set this to 3 ==> 0.468V. This works for 1080p component video.
- * 3 => 3 x 0.156V 
  */
 #define DAC_SYNC_LEVEL 3  
 
@@ -69,13 +70,16 @@
 #define MIN_LINE_COUNT 35
 #define MAX_LINE_COUNT 1115
 
-uint16_t line_count = 0;  // For counting which line we're currently processing.
+// For counting which line we're currently processing.
+uint16_t line_count = 0;  
 
 void main(void)
 {
-    OSCCON=0b00110000; //8Mhz
+    // System clock of 8Mhz
+    OSCCON=0b00110000; 
     
-    TRISA5 = 0; // Enable output for RA5 / V Sync 
+    // Enable output for RA1 / V Sync
+    TRISA1 = 0;  
        
     // DAC: Enable, with Full Range, Disable Output, Referenced to Vdd
     DACCON0 = 0b11000000;
@@ -126,21 +130,20 @@ void main(void)
     while(1);
 }
 
-
 void __interrupt() isr(void) {
     if (PIR2bits.C1IF) {
         /* 
          * A sync pulse has happened. This isr has been called ~10us later,
          * and if the comparator output is also high right now, then we're
-         * in the middle of a vertical sync pulse, so output that to RA5 and 
+         * in the middle of a vertical sync pulse, so output that to RA1 and 
          * reset the line counter.
          */
         if (CMOUTbits.MCOUT1) {
             // Only output a pulse for the first in the train of 5
-            if (line_count > 5) PORTAbits.RA5 = 1; 
+            if (line_count > 5) PORTAbits.RA1 = 1; 
             line_count = 0;
         } else {
-            PORTAbits.RA5 = 0;
+            PORTAbits.RA1 = 0;
             line_count++;
         }
         
