@@ -23,7 +23,7 @@
  * Pinout:
  * 
  *                 Vdd  1.    8  GND
- *                      2     7  COG1OUT1 / Line gate
+ *          !Line Gate  2     7  COG1OUT1 / Line gate
  *  C1IN1- / Signal IN  3     6  RA1 / V Sync Out
  *                      4     5  C1OUT / H sync Out
  */
@@ -39,11 +39,10 @@
 #pragma config CLKOUTEN = OFF   // Clock Out Enable bit (CLKOUT function disabled.  CLKOUT pin acts as I/O)
 
 
-
 /*
  * We use the DAC to generate a constant voltage that we compare against to
  * identify horizontal sync pulses. Using a 5V Vdd, each step in the DAC is
- * 156mV, so we set this to 3 ==> 0.468V. This works for 1080p component video.
+ * 156mV.
  */
 #define DAC_SYNC_LEVEL 3  
 
@@ -82,21 +81,28 @@ void main(void)
     TRISA1 = 0;  
        
     // DAC: Enable, with Full Range, Disable Output, Referenced to Vdd
-    DACCON0 = 0b11000000;
+    DACCON0bits.DACEN = 1; // Enable DAC
+    DACCON0bits.DACOE = 0; // No output
+    DACCON0bits.DACPSS0 = 0; // Reference Vdd
+    DACCON0bits.DACRNG = 1; // Full range
     DACCON1 = DAC_SYNC_LEVEL; 
     
     // Comparator 1
     TRISA2 = 0; // Allow comparator 1 to drive output
     TRISA4 = 1; // C1IN1- as Input.
-    CM1CON0 = 0b10101100; // 1: Enabled,
-                          // 0: Non-inverted polarity
-                          // 1: Output enabled
-                          // 0: Output not inverted
-                          // 1: Zero latency filter disabled
-                          // 1: Low speed mode
-                          // 0: Hysterisis enabled
-                          // 0: Asynchronous from Timer1
-    CM1CON1 = 0b00010001; // Read from DAC & C1N1-, No interrupts
+    CM1CON0bits.C1ON = 1;   // Comparator 1 enabled
+    CM1CON0bits.C1OUT = 1;  // Output non-inverted polarity
+    CM1CON0bits.C1OE = 1;   // Output enabled (H Sync Out)
+    CM1CON0bits.C1POL = 0;  // Not inverted
+    CM1CON0bits.C1ZLF = 1;  // Enable zero latency filter
+    CM1CON0bits.C1SP = 1;   // High speed mode
+    CM1CON0bits.C1HYS = 0;  // Disable hysteresis
+    CM1CON0bits.C1SYNC = 0; // Asynchronous from Timer1
+    
+    CM1CON1bits.C1INTN = 0; // No interrupt on Negative
+    CM1CON1bits.C1INTP = 1; // Interrupt on Positive
+    CM1CON1bits.C1PCH = 0b01; // Compare to DAC reference
+    CM1CON1bits.C1NCH0 = 1;  // C1N1- 
     
     // Interrupts 
     INTCON = 0;
