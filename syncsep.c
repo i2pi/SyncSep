@@ -23,9 +23,9 @@
  * Pinout:
  * 
  *                 Vdd  1.    8  GND
- *          !Line Gate  2     7  COG1OUT1 / Line gate
+ *                      2     7  COG1OUT1 / Line Gate Out
  *  C1IN1- / Signal IN  3     6  RA1 / V Sync Out
- *                      4     5  C1OUT / H sync Out
+ *                      4     5  C1OUT / H Sync Out
  */
 
 
@@ -44,7 +44,7 @@
  * identify horizontal sync pulses. Using a 5V Vdd, each step in the DAC is
  * 156mV.
  */
-#define DAC_SYNC_LEVEL 3  
+#define DAC_SYNC_LEVEL 3 
 
 /*
  * We use the COG to generate a high level on pin 7 to indicate that we're in 
@@ -96,7 +96,7 @@ void main(void)
     CM1CON0bits.C1POL = 0;  // Not inverted
     CM1CON0bits.C1ZLF = 1;  // Enable zero latency filter
     CM1CON0bits.C1SP = 1;   // High speed mode
-    CM1CON0bits.C1HYS = 0;  // Disable hysteresis
+    CM1CON0bits.C1HYS = 1;  // Disable hysteresis
     CM1CON0bits.C1SYNC = 0; // Asynchronous from Timer1
     
     CM1CON1bits.C1INTN = 0; // No interrupt on Negative
