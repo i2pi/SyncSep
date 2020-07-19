@@ -44,7 +44,7 @@
  * identify horizontal sync pulses. Using a 5V Vdd, each step in the DAC is
  * 156mV.
  */
-#define DAC_SYNC_LEVEL 3 
+#define DAC_SYNC_LEVEL 1
 
 /*
  * We use the COG to generate a high level on pin 7 to indicate that we're in 
@@ -59,7 +59,7 @@
  * The analog signal for each line takes about 26uS. We use the HLT timer to
  * trigger the auto-shutdown of the COG to drive pin 7 low. 
  */
-#define HLT_LINE_DURATION 55
+#define HLT_LINE_DURATION 57
 
 /*
  * Each frame includes a number of blank horizontal lines before and after the
